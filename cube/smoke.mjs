@@ -30,8 +30,9 @@ async function launch() {
 }
 async function stop() {
   if (!child || child.exitCode !== null || child.signalCode !== null) return;
-  const done = once(child, 'exit'); child.kill('SIGTERM');
+  const done = once(child, 'exit'); const began = Date.now(); child.kill('SIGHUP');
   const [code] = await done; child = null; assert.equal(code, 0);
+  assert(Date.now() - began < 2250, 'shutdown fits Cube termination deadline');
   for (const url of services) await assert.rejects(fetch(url, { signal: AbortSignal.timeout(1000) }), 'upstream services are also stopped');
 }
 try {

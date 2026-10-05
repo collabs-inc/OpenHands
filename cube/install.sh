@@ -2,7 +2,7 @@
 set -eu
 cube_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cache="${CUBE_OPENHANDS_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/cube-openhands}"
-runtime="$cache/1.24.0-1"
+runtime="$cache/1.24.0-2"
 mkdir -p "$cache" "$runtime"
 sh "$cube_dir/install-node.sh" "$cache"
 export PATH="$cache/node-24.21.0/bin:$runtime/bin:$PATH"

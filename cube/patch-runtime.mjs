@@ -6,6 +6,7 @@ const scripts = path.join(process.argv[2], 'node_modules/@openhands/agent-canvas
 for (const [name, before, after] of [
   ['ingress.mjs', 'server.listen(config.port, () => {', 'server.listen(config.port, "127.0.0.1", () => {'],
   ['static-server.mjs', 'host: "::",', 'host: "127.0.0.1",'],
+  ['dev-with-automation.mjs', 'shutdownHooks.run();\n    process.exit(0);\n  }, 3000);', 'shutdownHooks.run();\n    process.exit(0);\n  }, 1000);'],
 ]) {
   const file = path.join(scripts, name);
   const source = await readFile(file, 'utf8');

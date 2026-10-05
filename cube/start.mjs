@@ -11,7 +11,7 @@ const port = Number(process.env.PORT);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT must be between 1 and 65535.');
 const home = os.homedir();
 const cache = process.env.CUBE_OPENHANDS_CACHE_DIR || path.join(process.env.XDG_CACHE_HOME || path.join(home, '.cache'), 'cube-openhands');
-const runtime = path.join(cache, '1.24.0-1');
+const runtime = path.join(cache, '1.24.0-2');
 const data = process.env.CUBE_OPENHANDS_DATA_DIR || path.join(process.env.XDG_DATA_HOME || path.join(home, '.local/share'), 'cube-openhands');
 await mkdir(data, { recursive: true, mode: 0o700 });
 const state = path.join(data, 'agent-canvas');
@@ -54,7 +54,7 @@ async function stop(code = 0) {
   stopping = true; proxy.close();
   if (child.exitCode === null && child.signalCode === null) {
     const exited = once(child, 'exit').catch(() => {}); child.kill('SIGTERM');
-    const force = setTimeout(() => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} }, 15000);
+    const force = setTimeout(() => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} }, 1800);
     await exited; clearTimeout(force);
   }
   process.exit(code);
