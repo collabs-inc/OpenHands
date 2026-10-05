@@ -47,7 +47,8 @@ const child = spawn(process.execPath, [path.join(runtime, 'node_modules/@openhan
   cwd: data, env, stdio: ['ignore', log.fd, log.fd], detached: true,
 });
 await log.close();
-const proxy = gateway(innerPort);
+let ready = false;
+const proxy = gateway(innerPort, () => ready);
 let stopping = false;
 async function stop(code = 0) {
   if (stopping) return;
@@ -63,8 +64,9 @@ for (const signal of ['SIGTERM', 'SIGINT', 'SIGHUP']) process.on(signal, () => v
 child.on('error', () => { console.error('Cannot launch OpenHands; run install.'); void stop(1); });
 child.on('exit', () => { if (!stopping) { console.error(`OpenHands exited; see ${path.join(data, 'cube-runtime.log')}.`); void stop(1); } });
 try {
-  let ready = false;
-  const deadline = Date.now() + 50000;
+  proxy.server.listen(port, '127.0.0.1'); await once(proxy.server, 'listening');
+  console.log('Starting OpenHands services (up to five minutes on a cold volume)...');
+  const deadline = Date.now() + 300000;
   while (Date.now() < deadline) {
     try {
       ready = (await fetch(`http://127.0.0.1:${innerPort}/server_info`, { signal: AbortSignal.timeout(1000) })).ok &&
@@ -75,6 +77,5 @@ try {
     await delay(200);
   }
   if (!ready) throw new Error(`OpenHands did not become ready; see ${path.join(data, 'cube-runtime.log')}.`);
-  proxy.server.listen(port, '127.0.0.1'); await once(proxy.server, 'listening');
   console.log(`OpenHands is ready on 127.0.0.1:${port}.`);
 } catch (error) { console.error(error.message); await stop(1); }

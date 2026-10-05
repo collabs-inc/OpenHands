@@ -1,6 +1,7 @@
 import http from 'node:http';
 import net from 'node:net';
 import { once } from 'node:events';
+import { startupResponse } from './startup.mjs';
 
 export async function freePort() {
   const server = net.createServer().listen(0, '127.0.0.1');
@@ -28,12 +29,13 @@ export function allowed(req, websocket = false) {
   return true;
 }
 
-export function gateway(innerPort) {
+export function gateway(innerPort, ready = () => true) {
   const server = http.createServer();
   const sockets = new Set();
   server.on('connection', socket => { sockets.add(socket); socket.on('close', () => sockets.delete(socket)); });
   server.on('request', (req, res) => {
     if (!allowed(req)) { res.writeHead(403); res.end('Forbidden'); return; }
+    if (!ready()) { startupResponse(req, res, 'OpenHands'); return; }
     const proxy = http.request({ host: '127.0.0.1', port: innerPort, method: req.method, path: req.url, headers: req.headers }, upstream => {
       const headers = { ...upstream.headers };
       delete headers['access-control-allow-origin'];
@@ -48,6 +50,7 @@ export function gateway(innerPort) {
   });
   server.on('upgrade', (req, socket, head) => {
     if (!allowed(req, true)) { socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n'); return; }
+    if (!ready()) { socket.end('HTTP/1.1 503 Starting\r\nConnection: close\r\n\r\n'); return; }
     const proxy = http.request({ host: '127.0.0.1', port: innerPort, method: 'GET', path: req.url, headers: req.headers });
     proxy.on('upgrade', (response, remote, remoteHead) => {
       sockets.add(remote); remote.on('close', () => sockets.delete(remote));
