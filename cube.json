@@ -1,0 +1,8 @@
+{
+  "name": "OpenHands",
+  "description": "Agent Canvas: coding agents, conversations and automations using a local OpenHands backend.",
+  "icon": "public/favicon.svg",
+  "platforms": ["linux"],
+  "install": "sh cube/install.sh",
+  "start": "sh cube/start.sh"
+}
